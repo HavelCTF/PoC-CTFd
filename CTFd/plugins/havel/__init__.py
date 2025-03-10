@@ -104,3 +104,6 @@ def load(app):
     register_plugin_assets_directory(
         app, base_path="/plugins/havel/assets/"
     )
+    register_plugin_assets_directory(
+        app, base_path="/plugins/havel/static/", endpoint="havel.static"
+    )
