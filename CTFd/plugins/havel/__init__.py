@@ -15,14 +15,10 @@ class HavelChallenge(Challenges):
     id = db.Column(
         db.Integer, db.ForeignKey("challenges.id", ondelete="CASCADE"), primary_key=True
     )
-    camion = db.Column(db.String(2048), default="")
+    camion = db.Column(db.Text, default="")
 
     def __init__(self, *args, **kwargs):
         super(HavelChallenge, self).__init__(**kwargs)
-        try:
-            self.value = kwargs["camion"]
-        except KeyError:
-            raise ChallengeCreateException("Missing camion value for challenge")
 
 
 class HavelValueChallenge(BaseChallenge):
