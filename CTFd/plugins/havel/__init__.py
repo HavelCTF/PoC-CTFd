@@ -15,15 +15,14 @@ class HavelChallenge(Challenges):
     id = db.Column(
         db.Integer, db.ForeignKey("challenges.id", ondelete="CASCADE"), primary_key=True
     )
-    value = db.Column(db.Integer, default=0)
     camion = db.Column(db.String(2048), default="")
 
     def __init__(self, *args, **kwargs):
         super(HavelChallenge, self).__init__(**kwargs)
         try:
-            self.config = kwargs["value"]
+            self.value = kwargs["camion"]
         except KeyError:
-            raise ChallengeCreateException("Missing value for challenge")
+            raise ChallengeCreateException("Missing camion value for challenge")
 
 
 class HavelValueChallenge(BaseChallenge):
@@ -64,34 +63,10 @@ class HavelValueChallenge(BaseChallenge):
         data = super().read(challenge)
         data.update(
             {
-                "value": challenge.value,
                 "camion": challenge.camion,
             }
         )
         return data
-
-    @classmethod
-    def update(cls, challenge, request):
-        """
-        This method is used to update the information associated with a challenge. This should be kept strictly to the
-        Challenges table and any child tables.
-
-        :param challenge:
-        :param request:
-        :return:
-        """
-        data = request.form or request.get_json()
-
-        for attr, value in data.items():
-            # We need to set these to floats so that the next operations don't operate on strings
-            if attr in ("value", "camion"):
-                try:
-                    value = str(value)
-                except (ValueError, TypeError):
-                    raise ChallengeUpdateException(f"Invalid input for '{attr}'")
-            setattr(challenge, attr, value)
-
-        return value
 
     @classmethod
     def solve(cls, user, team, challenge, request):

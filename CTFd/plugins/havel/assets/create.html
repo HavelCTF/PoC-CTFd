@@ -2,14 +2,14 @@
 
 {% block header %}
 <div class="alert alert-secondary" role="alert">
-  <img
-    src="{{ url_for('havel.static', path='img/logo.png') }}"
-    class="img-thumbnail"
-    width="1804"
-    height="672"
-    alt="Havel logo"
-    style="background-color: transparent"
-  />
+    <img
+        src="{{ url_for('havel.static', path='img/logo.png') }}"
+        class="img-thumbnail"
+        width="1804"
+        height="672"
+        alt="Havel logo"
+        style="background-color: transparent"
+    />
 </div>
 {% endblock %}
 
@@ -24,12 +24,16 @@
 </div>
 
 <div class="form-group">
-  <label for="value">Docker Configuration:<br>
+    <label for="camion">Docker Configuration:<br>
         <small class="form-text text-muted">
             <span>Provide the docker configuration for the challenge</span>
         </small>
     </label>
-    <!-- <input type="text" class="form-control" name="camion" placeholder="Enter docker configuration" required> -->
+
     <textarea class="form-control" name="camion" rows="15" placeholder="Enter docker configuration" required></textarea>
 </div>
+{% endblock %}
+
+{% block type %}
+<input type="hidden" value="havel" name="type" id="chaltype">
 {% endblock %}
