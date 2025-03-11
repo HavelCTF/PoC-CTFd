@@ -16,11 +16,12 @@ class HavelChallenge(Challenges):
         db.Integer, db.ForeignKey("challenges.id", ondelete="CASCADE"), primary_key=True
     )
     value = db.Column(db.Integer, default=0)
+    camion = db.Column(db.String(2048), default="")
 
     def __init__(self, *args, **kwargs):
         super(HavelChallenge, self).__init__(**kwargs)
         try:
-            self.value = kwargs["value"]
+            self.config = kwargs["value"]
         except KeyError:
             raise ChallengeCreateException("Missing value for challenge")
 
@@ -64,6 +65,7 @@ class HavelValueChallenge(BaseChallenge):
         data.update(
             {
                 "value": challenge.value,
+                "camion": challenge.camion,
             }
         )
         return data
@@ -82,20 +84,18 @@ class HavelValueChallenge(BaseChallenge):
 
         for attr, value in data.items():
             # We need to set these to floats so that the next operations don't operate on strings
-            if attr in ("value"):
+            if attr in ("value", "camion"):
                 try:
-                    value = float(value)
+                    value = str(value)
                 except (ValueError, TypeError):
                     raise ChallengeUpdateException(f"Invalid input for '{attr}'")
             setattr(challenge, attr, value)
 
-        return HavelValueChallenge.calculate_value(challenge)
+        return value
 
     @classmethod
     def solve(cls, user, team, challenge, request):
         super().solve(user, team, challenge, request)
-
-        return True
 
 
 def load(app):
