@@ -1,1 +1,39 @@
 {% extends "challenge.html" %}
+
+{% block description %}
+<div class="mb-3">
+    <div id="wm-start">
+        <button
+            type="submit" id="wm-start-btn" class="btn btn-success"
+            onclick="wm_reset('{{ challenge.id }}')"
+        >
+            Start
+        </button>
+    </div>
+
+    <div id="wm-status" style="display: none;">
+        <p>Expires in <span id="wm-expires"></span> minutes</p>
+
+        <p>
+            <button
+                type="submit" id="wm-reset-btn" class="btn btn-success"
+                onclick="wm_reset('{{ challenge.id }}')"
+            >
+                Reset
+            </button>
+            <button
+                type="submit" id="wm-stop-btn" class="btn btn-success"
+                onclick="wm_stop('{{ challenge.id }}')"
+            >
+                Stop
+            </button>
+            <button
+                type="submit" id="wm-renew-btn" class="btn btn-info"
+                onclick="wm_renew('{{ challenge.id }}')"
+            >
+                Add Time
+            </button>
+        </p>
+    </div>
+</div>
+{% endblock %}

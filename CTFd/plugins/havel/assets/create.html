@@ -1,16 +1,14 @@
 {% extends "admin/challenges/create.html" %}
 
 {% block header %}
-<div class="alert alert-secondary" role="alert">
-    <img
-        src="{{ url_for('havel.static', path='img/logo.png') }}"
-        class="img-thumbnail"
-        width="1804"
-        height="672"
-        alt="Havel logo"
-        style="background-color: transparent"
-    />
-</div>
+<img
+	src="{{ url_for('havel.static', path='img/logo.png') }}"
+	class="img-thumbnail"
+	width="1804"
+	height="672"
+	alt="Havel logo"
+	style="background-color: #1E1E1E; max-width: 320px; padding: 16px;"
+/>
 {% endblock %}
 
 {% block value %}
