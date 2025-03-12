@@ -1,0 +1,39 @@
+{% extends "challenge.html" %}
+
+{% block description %}
+<div class="mb-3">
+    <div id="docker-start">
+        <button
+            type="submit" id="docker-start-btn" class="btn btn-success"
+            onclick="docker_start('{{ challenge.id }}')"
+        >
+            Start
+        </button>
+    </div>
+
+    <div id="docker-status" style="display: none;">
+        <p>Expires in <span id="docker-expires"></span> minutes</p>
+
+        <p>
+            <button
+                type="submit" id="docker-reset-btn" class="btn btn-success"
+                onclick="docker_reset('{{ challenge.id }}')"
+            >
+                Reset
+            </button>
+            <button
+                type="submit" id="docker-stop-btn" class="btn btn-success"
+                onclick="docker_stop('{{ challenge.id }}')"
+            >
+                Stop
+            </button>
+            <button
+                type="submit" id="docker-renew-btn" class="btn btn-info"
+                onclick="docker_renew('{{ challenge.id }}')"
+            >
+                Add Time
+            </button>
+        </p>
+    </div>
+</div>
+{% endblock %}

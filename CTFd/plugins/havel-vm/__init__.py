@@ -14,26 +14,26 @@ from CTFd.utils.decorators import authed_only, admins_only, during_ctf_time_only
 from CTFd.utils.user import get_current_user
 from CTFd.utils.modes import get_model
 
-from .models import HavelChallengeModel
+from .models import HavelVMChallengeModel
 
 
-class HavelChallenge(BaseChallenge):
-    id = "havel"  # Unique identifier used to register challenges
-    name = "havel"  # Name of a challenge type
+class HavelVMChallenge(BaseChallenge):
+    id = "havel-vm"  # Unique identifier used to register challenges
+    name = "havel-vm"  # Name of a challenge type
     templates = {  # Handlebars templates used for each aspect of challenge editing & viewing
-        "create": "/plugins/havel/assets/create.html",
-        "update": "/plugins/havel/assets/update.html",
-        "view": "/plugins/havel/assets/view.html",
+        "create": "/plugins/havel-vm/assets/create.html",
+        "update": "/plugins/havel-vm/assets/update.html",
+        "view": "/plugins/havel-vm/assets/view.html",
     }
     scripts = {  # Scripts that are loaded when a template is loaded
-        "create": "/plugins/havel/assets/create.js",
-        "update": "/plugins/havel/assets/update.js",
-        "view": "/plugins/havel/assets/view.js",
+        "create": "/plugins/havel-vm/assets/create.js",
+        "update": "/plugins/havel-vm/assets/update.js",
+        "view": "/plugins/havel-vm/assets/view.js",
     }
     # Route at which files are accessible. This must be registered using register_plugin_assets_directory()
-    route = "/plugins/havel/assets/"
+    route = "/plugins/havel-vm/assets/"
 
-    challenge_model = HavelChallengeModel
+    challenge_model = HavelVMChallengeModel
 
     @classmethod
     def read(cls, challenge):
@@ -47,7 +47,7 @@ class HavelChallenge(BaseChallenge):
             "id": challenge.id,
             "name": challenge.name,
             "value": challenge.value,
-            "camion": challenge.camion,
+            "config": challenge.config,
             "initial": challenge.initial,
             "decay": challenge.decay,
             "minimum": challenge.minimum,
@@ -119,21 +119,21 @@ class HavelChallenge(BaseChallenge):
                 value = float(value)
             setattr(challenge, attr, value)
 
-        return HavelChallenge.calculate_value(challenge)
+        return HavelVMChallenge.calculate_value(challenge)
 
     @classmethod
     def solve(cls, user, team, challenge, request):
         super().solve(user, team, challenge, request)
 
-        HavelChallenge.calculate_value(challenge)
+        HavelVMChallenge.calculate_value(challenge)
 
 
 def load(app: Flask):
     app.db.create_all()
-    CHALLENGE_CLASSES["havel"] = HavelChallenge
+    CHALLENGE_CLASSES["havel-vm"] = HavelVMChallenge
     register_plugin_assets_directory(
-        app, base_path="/plugins/havel/assets/"
+        app, base_path="/plugins/havel-vm/assets/"
     )
     register_plugin_assets_directory(
-        app, base_path="/plugins/havel/static/", endpoint="havel.static"
+        app, base_path="/plugins/havel-vm/static/", endpoint="havel-vm.static"
     )

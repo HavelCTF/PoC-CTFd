@@ -1,0 +1,56 @@
+{% extends "admin/challenges/create.html" %}
+
+{% block header %}
+<img
+	src="{{ url_for('havel-docker.static', path='img/logo.png') }}"
+	class="img-thumbnail"
+	width="1804"
+	height="672"
+	alt="Havel logo"
+	style="background-color: #1E1E1E; max-width: 320px; padding: 16px;"
+/>
+{% endblock %}
+
+{% block value %}
+<div class="form-group">
+	<label for="value">Initial Value<br>
+		<small class="form-text text-muted">
+			This is how many points the challenge is worth initially.
+		</small>
+	</label>
+	<input type="number" class="form-control" name="initial" placeholder="Enter value" required>
+
+</div>
+
+<div class="form-group">
+	<label for="value">Decay Limit<br>
+		<small class="form-text text-muted">
+			The amount of solves before the challenge reaches its minimum value
+		</small>
+	</label>
+	<input type="number" class="form-control" name="decay" placeholder="Enter decay limit" required>
+</div>
+
+<div class="form-group">
+	<label for="value">Minimum Value<br>
+		<small class="form-text text-muted">
+			This is the lowest that the challenge can be worth
+		</small>
+	</label>
+	<input type="number" class="form-control" name="minimum" placeholder="Enter minimum value" required>
+</div>
+
+<div class="form-group">
+    <label for="value">Docker Configuration:<br>
+        <small class="form-text text-muted">
+            <span>Provide the docker configuration for the challenge</span>
+        </small>
+    </label>
+
+    <textarea class="form-control" name="config" rows="15" placeholder="Enter docker configuration" required></textarea>
+</div>
+{% endblock %}
+
+{% block type %}
+<input type="hidden" value="havel-docker" name="type" id="chaltype">
+{% endblock %}

@@ -5,12 +5,12 @@ from CTFd.models import db
 from CTFd.models import Challenges
 
 
-class HavelChallengeModel(Challenges):
-    __mapper_args__ = {"polymorphic_identity": "havel"}
+class HavelDockerChallengeModel(Challenges):
+    __mapper_args__ = {"polymorphic_identity": "havel-docker"}
     id = db.Column(
         db.Integer, db.ForeignKey("challenges.id", ondelete="CASCADE"), primary_key=True
     )
-    camion = db.Column(db.Text, default="")
+    config = db.Column(db.Text, default="")
 
     # Dynamic challenge properties
     initial = db.Column(db.Integer, default=0)
@@ -18,5 +18,5 @@ class HavelChallengeModel(Challenges):
     decay = db.Column(db.Integer, default=0)
 
     def __init__(self, *args, **kwargs):
-        super(HavelChallengeModel, self).__init__(**kwargs)
+        super(HavelDockerChallengeModel, self).__init__(**kwargs)
         self.value = kwargs["initial"]
