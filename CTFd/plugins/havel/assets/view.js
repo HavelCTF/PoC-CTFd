@@ -35,3 +35,31 @@ CTFd._internal.challenge.submit = function(preview) {
     return response;
   });
 };
+
+function wm_start(challenge_id) {
+  console.log("Starting window manager for challenge " + challenge_id);
+
+  const wmStart = document.getElementById("wm-start");
+  const wmStatus = document.getElementById("wm-status");
+
+  wmStart.style.display = "none";
+  wmStatus.style.display = "block";
+}
+
+function wm_stop(challenge_id) {
+  console.log("Stopping window manager for challenge " + challenge_id);
+
+  const wmStart = document.getElementById("wm-start");
+  const wmStatus = document.getElementById("wm-status");
+
+  wmStart.style.display = "block";
+  wmStatus.style.display = "none";
+}
+
+function wm_reset(challenge_id) {
+  console.log("Resetting window manager for challenge " + challenge_id);
+}
+
+function wm_renew(challenge_id) {
+  console.log("Renewing window manager for challenge " + challenge_id);
+}
