@@ -2,34 +2,34 @@
 
 {% block description %}
 <div class="mb-3">
-    <div id="wm-start">
+    <div id="vm-start">
         <button
-            type="submit" id="wm-start-btn" class="btn btn-success"
-            onclick="wm_start('{{ challenge.id }}')"
+            type="submit" id="vm-start-btn" class="btn btn-success"
+            onclick="vm_start('{{ challenge.id }}')"
         >
             Start
         </button>
     </div>
 
-    <div id="wm-status" style="display: none;">
-        <p>Expires in <span id="wm-expires"></span> minutes</p>
+    <div id="vm-status" style="display: none;">
+        <p>Expires in <span id="vm-expires"></span> minutes</p>
 
         <p>
             <button
-                type="submit" id="wm-reset-btn" class="btn btn-success"
-                onclick="wm_reset('{{ challenge.id }}')"
+                type="submit" id="vm-reset-btn" class="btn btn-success"
+                onclick="vm_reset('{{ challenge.id }}')"
             >
                 Reset
             </button>
             <button
-                type="submit" id="wm-stop-btn" class="btn btn-success"
-                onclick="wm_stop('{{ challenge.id }}')"
+                type="submit" id="vm-stop-btn" class="btn btn-success"
+                onclick="vm_stop('{{ challenge.id }}')"
             >
                 Stop
             </button>
             <button
-                type="submit" id="wm-renew-btn" class="btn btn-info"
-                onclick="wm_renew('{{ challenge.id }}')"
+                type="submit" id="vm-renew-btn" class="btn btn-info"
+                onclick="vm_renew('{{ challenge.id }}')"
             >
                 Add Time
             </button>

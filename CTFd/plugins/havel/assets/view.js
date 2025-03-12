@@ -36,30 +36,30 @@ CTFd._internal.challenge.submit = function(preview) {
   });
 };
 
-function wm_start(challenge_id) {
-  console.log("Starting window manager for challenge " + challenge_id);
+function vm_start(challenge_id) {
+  console.log("Starting virtual machine for challenge " + challenge_id);
 
-  const wmStart = document.getElementById("wm-start");
-  const wmStatus = document.getElementById("wm-status");
+  const vmStart = document.getElementById("vm-start");
+  const vmStatus = document.getElementById("vm-status");
 
-  wmStart.style.display = "none";
-  wmStatus.style.display = "block";
+  vmStart.style.display = "none";
+  vmStatus.style.display = "block";
 }
 
-function wm_stop(challenge_id) {
-  console.log("Stopping window manager for challenge " + challenge_id);
+function vm_stop(challenge_id) {
+  console.log("Stopping virtual machine for challenge " + challenge_id);
 
-  const wmStart = document.getElementById("wm-start");
-  const wmStatus = document.getElementById("wm-status");
+  const vmStart = document.getElementById("vm-start");
+  const vmStatus = document.getElementById("vm-status");
 
-  wmStart.style.display = "block";
-  wmStatus.style.display = "none";
+  vmStart.style.display = "block";
+  vmStatus.style.display = "none";
 }
 
-function wm_reset(challenge_id) {
-  console.log("Resetting window manager for challenge " + challenge_id);
+function vm_reset(challenge_id) {
+  console.log("Resetting virtual machine for challenge " + challenge_id);
 }
 
-function wm_renew(challenge_id) {
-  console.log("Renewing window manager for challenge " + challenge_id);
+function vm_renew(challenge_id) {
+  console.log("Renewing virtual machine for challenge " + challenge_id);
 }
