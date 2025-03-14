@@ -1,20 +1,17 @@
 from __future__ import division
 
-import time
-import json
-import datetime
 import math
 
-from flask import Blueprint, request, Flask, render_template, url_for, redirect, flash
+from flask import Blueprint, request, Flask
 
-from CTFd.models import db, Solves
+from CTFd.models import db, Solves, Users, Teams
 from CTFd.plugins import register_plugin_assets_directory
 from CTFd.plugins.challenges import CHALLENGE_CLASSES, BaseChallenge
-from CTFd.utils.decorators import authed_only, admins_only, during_ctf_time_only, ratelimit, require_verified_emails
-from CTFd.utils.user import get_current_user
+from CTFd.utils.decorators import authed_only, during_ctf_time_only, ratelimit
 from CTFd.utils.modes import get_model
 
 from .models import HavelDockerChallengeModel
+from .compose_manager import ComposeManager
 
 
 class HavelDockerChallenge(BaseChallenge):
@@ -35,6 +32,7 @@ class HavelDockerChallenge(BaseChallenge):
 
     challenge_model = HavelDockerChallengeModel
 
+
     @classmethod
     def read(cls, challenge):
         """
@@ -48,6 +46,7 @@ class HavelDockerChallenge(BaseChallenge):
             "name": challenge.name,
             "value": challenge.value,
             "config": challenge.config,
+            "file_path": challenge.file_path,
             "initial": challenge.initial,
             "decay": challenge.decay,
             "minimum": challenge.minimum,
@@ -66,9 +65,13 @@ class HavelDockerChallenge(BaseChallenge):
         }
         return data
 
+
     @classmethod
     def calculate_value(cls, challenge):
         Model = get_model()
+
+        if not Model is Users and not Model is Teams:
+            raise ValueError("HavelDockerChallenge can only be used with Users or Teams")
 
         solve_count = (
             Solves.query.join(Model, Solves.account_id == Model.id)
@@ -92,6 +95,7 @@ class HavelDockerChallenge(BaseChallenge):
             ((challenge.minimum - challenge.initial) / (challenge.decay ** 2))
             * (solve_count ** 2)
         ) + challenge.initial
+        print(f"Value: {value}")
 
         value = math.ceil(value)
 
@@ -101,6 +105,7 @@ class HavelDockerChallenge(BaseChallenge):
         challenge.value = value
         db.session.commit()
         return challenge
+
 
     @classmethod
     def update(cls, challenge, request):
@@ -130,10 +135,108 @@ class HavelDockerChallenge(BaseChallenge):
 
 def load(app: Flask):
     app.db.create_all()
-    CHALLENGE_CLASSES["havel-docker"] = HavelDockerChallenge
+    CHALLENGE_CLASSES["havel-docker"] = HavelDockerChallenge # type: ignore
     register_plugin_assets_directory(
         app, base_path="/plugins/havel-docker/assets/"
     )
-    register_plugin_assets_directory(
-        app, base_path="/plugins/havel-docker/static/", endpoint="havel-docker.static"
+
+    compose_manager = ComposeManager()
+
+    havel_docker_bp = Blueprint(
+        'havel-docker',
+        __name__,
+        static_folder='static',
+        static_url_path='/static',
+        url_prefix='/havel-docker',
     )
+
+
+    @havel_docker_bp.route('/api/start', methods=['POST'])
+    @authed_only
+    @during_ctf_time_only
+    @ratelimit(method="POST", limit=6, interval=60)
+    def start_compose():
+        if request.json is None:
+            return {"error": "Invalid request"}, 400
+        if request.json.get("challenge_id") is None:
+            return {"error": "No challenge_id provided"}, 400
+
+        challenge_id = request.json.get("challenge_id")
+        challenge = HavelDockerChallengeModel.query.filter_by(id=challenge_id).first()
+        if challenge is None:
+            return {"error": "Invalid challenge_id"}, 400
+
+        try:
+            compose_manager.run(f"compose-{challenge.id}.yml", challenge.config)
+        except Exception as e:
+            return {"error": str(e)}, 500
+
+        return {"success": "Compose started successfully"}, 200
+
+
+    @havel_docker_bp.route('/api/stop', methods=['POST'])
+    @authed_only
+    @during_ctf_time_only
+    @ratelimit(method="POST", limit=6, interval=60)
+    def stop_compose():
+        if request.json is None:
+            return {"error": "Invalid request"}, 400
+        if request.json.get("challenge_id") is None:
+            return {"error": "No challenge_id provided"}, 400
+
+        challenge_id = request.json.get("challenge_id")
+        challenge = HavelDockerChallengeModel.query.filter_by(id=challenge_id).first()
+        if challenge is None:
+            return {"error": "Invalid challenge_id"}, 400
+
+        try:
+            compose_manager.stop(f"compose-{challenge.id}.yml")
+        except Exception as e:
+            return {"error": str(e)}, 500
+
+        return {"success": "Compose stopped successfully"}, 200
+
+
+    @havel_docker_bp.route('/api/reset', methods=['POST'])
+    @authed_only
+    @during_ctf_time_only
+    @ratelimit(method="POST", limit=6, interval=60)
+    def reset_compose():
+        if request.json is None:
+            return {"error": "Invalid request"}, 400
+        if request.json.get("challenge_id") is None:
+            return {"error": "No challenge_id provided"}, 400
+
+        challenge_id = request.json.get("challenge_id")
+        challenge = HavelDockerChallengeModel.query.filter_by(id=challenge_id).first()
+        if challenge is None:
+            return {"error": "Invalid challenge_id"}, 400
+
+        try:
+            compose_manager.reset(f"compose-{challenge.id}.yml", challenge.config)
+        except Exception as e:
+            return {"error": str(e)}, 500
+
+        return {"success": "Compose reset successfully"}, 200
+
+
+    @havel_docker_bp.route('/api/status', methods=['POST'])
+    @authed_only
+    @during_ctf_time_only
+    @ratelimit(method="POST")
+    def is_compose_running():
+        if request.json is None:
+            return {"error": "Invalid request"}, 400
+        if request.json.get("challenge_id") is None:
+            return {"error": "No challenge_id provided"}, 400
+
+        challenge_id = request.json.get("challenge_id")
+        challenge = HavelDockerChallengeModel.query.filter_by(id=challenge_id).first()
+        if challenge is None:
+            return {"error": "Invalid challenge_id"}, 400
+
+        is_running = compose_manager.is_running(f"compose-{challenge.id}.yml")
+
+        return {"status": "running" if is_running else "stopped"}, 200
+
+    app.register_blueprint(havel_docker_bp)

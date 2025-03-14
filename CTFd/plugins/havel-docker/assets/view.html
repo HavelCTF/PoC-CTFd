@@ -2,7 +2,11 @@
 
 {% block description %}
 <div class="mb-3">
-    <div id="docker-start">
+    <div id="docker-skeleton" class="btn btn-info" style="width: 100%;">
+        Loading Docker Container...
+    </div>
+
+    <div id="docker-start" style="display: none;">
         <button
             type="submit" id="docker-start-btn" class="btn btn-success"
             onclick="docker_start('{{ challenge.id }}')"
@@ -12,8 +16,6 @@
     </div>
 
     <div id="docker-status" style="display: none;">
-        <p>Expires in <span id="docker-expires"></span> minutes</p>
-
         <p>
             <button
                 type="submit" id="docker-reset-btn" class="btn btn-success"
@@ -26,12 +28,6 @@
                 onclick="docker_stop('{{ challenge.id }}')"
             >
                 Stop
-            </button>
-            <button
-                type="submit" id="docker-renew-btn" class="btn btn-info"
-                onclick="docker_renew('{{ challenge.id }}')"
-            >
-                Add Time
             </button>
         </p>
     </div>
