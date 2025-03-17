@@ -2,15 +2,15 @@ from __future__ import division
 
 import math
 
-from flask import Blueprint, request, Flask
+from flask import Blueprint, request, Flask, render_template, redirect, url_for
 
 from CTFd.models import db, Solves, Users, Teams
 from CTFd.plugins import register_plugin_assets_directory
 from CTFd.plugins.challenges import CHALLENGE_CLASSES, BaseChallenge
-from CTFd.utils.decorators import authed_only, during_ctf_time_only, ratelimit
+from CTFd.utils.decorators import authed_only, during_ctf_time_only, ratelimit, admins_only
 from CTFd.utils.modes import get_model
 
-from .models import HavelDockerChallengeModel
+from .models import HavelDockerChallengeModel, HavelDockerSettingsModel
 from .compose_manager import ComposeManager
 
 
@@ -133,6 +133,12 @@ class HavelDockerChallenge(BaseChallenge):
         HavelDockerChallenge.calculate_value(challenge)
 
 
+def settings_to_dict(settings):
+    return {
+        setting.key: setting.value for setting in settings
+    }
+
+
 def load(app: Flask):
     app.db.create_all()
     CHALLENGE_CLASSES["havel-docker"] = HavelDockerChallenge # type: ignore
@@ -140,11 +146,17 @@ def load(app: Flask):
         app, base_path="/plugins/havel-docker/assets/"
     )
 
-    compose_manager = ComposeManager()
+    compose_settings: HavelDockerSettingsModel = HavelDockerSettingsModel.query.all()
+    if len(compose_settings) == 0:
+        compose_settings = HavelDockerSettingsModel()
+        db.session.add(compose_settings)
+        db.session.commit()
+    compose_manager = ComposeManager(compose_settings[0])
 
     havel_docker_bp = Blueprint(
         'havel-docker',
         __name__,
+        template_folder='templates',
         static_folder='static',
         static_url_path='/static',
         url_prefix='/havel-docker',
@@ -223,7 +235,6 @@ def load(app: Flask):
     @havel_docker_bp.route('/api/status', methods=['POST'])
     @authed_only
     @during_ctf_time_only
-    @ratelimit(method="POST")
     def is_compose_running():
         if request.json is None:
             return {"error": "Invalid request"}, 400
@@ -238,5 +249,37 @@ def load(app: Flask):
         is_running = compose_manager.is_running(f"compose-{challenge.id}.yml")
 
         return {"status": "running" if is_running else "stopped"}, 200
+
+
+    @havel_docker_bp.route('/api/settings', methods=['GET'])
+    @authed_only
+    @during_ctf_time_only
+    def get_settings():
+        settings = compose_manager.get_settings()
+        return settings, 200
+
+
+    @havel_docker_bp.route('/api/settings', methods=['POST'])
+    @admins_only
+    def set_settings():
+        print("Form: ", request.form)
+
+        if request.form.get("hostname") is None:
+            return {"error": "Invalid request"}, 400
+
+        settings = {
+            "hostname": request.form.get("hostname")
+        }
+        compose_manager.set_settings(settings)
+
+        return redirect(url_for(".route_compose_settings"))
+
+
+    @havel_docker_bp.route('/settings', methods=['GET'])
+    @admins_only
+    def route_compose_settings():
+        settings = compose_manager.get_settings()
+        return render_template('compose_settings.html', settings=settings)
+
 
     app.register_blueprint(havel_docker_bp)

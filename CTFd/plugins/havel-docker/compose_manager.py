@@ -2,13 +2,16 @@ import subprocess
 import os
 import tempfile
 
+from CTFd.models import db
+
 
 class ComposeManager:
-    def __init__(self):
+    def __init__(self, compose_settings):
+        self.compose_settings = compose_settings
         self.temp_dir = tempfile.mkdtemp()
-        pass
 
-    def check(self, filename: str, compose_content: str) -> bool:
+    @staticmethod
+    def check(filename: str, compose_content: str) -> bool:
         """
         Checks if a compose file is valid and can be run.
 
@@ -24,7 +27,8 @@ class ComposeManager:
         except Exception:
             raise Exception("Docker Compose is not installed. Please install Docker Compose and try again.")
 
-        file_path: str = os.path.join(self.temp_dir, filename)
+        temp_dir = tempfile.mkdtemp()
+        file_path: str = os.path.join(temp_dir, filename)
 
         with open(file_path, 'w') as f:
             f.write(compose_content)
@@ -35,7 +39,7 @@ class ComposeManager:
         except Exception:
             is_valid = False
 
-        os.remove(file_path)
+        os.rmdir(temp_dir)
         return is_valid
 
 
@@ -45,7 +49,7 @@ class ComposeManager:
 
         Args:
             filename (str): The name of the docker compose file
-            compose_content (str): The content of the compose.yml file as a string
+            compose_content (str): The contencompose_settingst of the compose.yml file as a string
         """
         file_path: str = os.path.join(self.temp_dir, filename)
 
@@ -55,7 +59,7 @@ class ComposeManager:
         result = subprocess.run(["docker", "compose", "--file", file_path, "up", "-d"], capture_output=True, text=True)
 
         if result.returncode != 0:
-            raise Exception("Error starting Docker Compose.")
+            raise Exception("Error starting Docker Compose.\n", result.stderr)
 
 
     def stop(self, filename: str):
@@ -109,3 +113,26 @@ class ComposeManager:
             capture_output=True, text=True)
 
         return result_running_services.stdout == result_services.stdout
+
+
+    def get_settings(self):
+        """
+        Gets the settings for the compose manager.
+
+        Returns:
+            dict: The settings for the compose manager
+        """
+        return {
+            "hostname": self.compose_settings.hostname
+        }
+
+
+    def set_settings(self, settings):
+        """
+        Sets the settings for the compose manager.
+
+        Args:
+            settings (dict): The settings to set
+        """
+        self.compose_settings.hostname = settings["hostname"]
+        db.session.commit()

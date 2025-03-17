@@ -24,13 +24,17 @@ class HavelDockerChallengeModel(Challenges):
         super(HavelDockerChallengeModel, self).__init__(**kwargs)
         self.value = kwargs["initial"]
 
-        compose_manager = ComposeManager()
-
         is_valid = False
         try:
-            compose_manager.check(f"compose-{self.id}.yml", self.config)
+            is_valid = ComposeManager.check(f"compose-{self.id}.yml", self.config)
         except Exception as e:
             raise ChallengeCreateException(e)
 
         if not is_valid:
             raise ChallengeCreateException("Invalid docker compose configuration")
+
+
+class HavelDockerSettingsModel(db.Model):
+    __mapper_args__ = {"polymorphic_identity": "havel-docker-settings"}
+    id = db.Column(db.Integer, primary_key=True)
+    hostname = db.Column(db.String(128), default="[No hostname set]")

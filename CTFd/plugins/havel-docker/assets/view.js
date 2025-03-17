@@ -8,7 +8,15 @@ CTFd._internal.challenge.preRender = function () {};
 // TODO: Remove in CTFd v4.0
 CTFd._internal.challenge.render = null;
 
-CTFd._internal.challenge.postRender = function () {};
+CTFd._internal.challenge.postRender = function () {
+  const checkInterval = setInterval(() => {
+    let dockerStart = document.getElementById("docker-start");
+    if (dockerStart) {
+      clearInterval(checkInterval);
+      docker_status(CTFd._internal.challenge.data.id);
+    }
+  }, 100);
+};
 
 CTFd._internal.challenge.submit = function (preview) {
   var challenge_id = parseInt(CTFd.lib.$("#challenge-id").val());
@@ -51,7 +59,12 @@ function docker_start(challenge_id) {
     },
     body: JSON.stringify({ challenge_id: challenge_id }),
   })
-    .then((response) => response.json())
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    })
     .then((data) => {
       dockerStart.style.display = "none";
       dockerStatus.style.display = "block";
@@ -74,7 +87,12 @@ function docker_stop(challenge_id) {
     },
     body: JSON.stringify({ challenge_id: challenge_id }),
   })
-    .then((response) => response.json())
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    })
     .then((data) => {
       dockerStart.style.display = "block";
       dockerStatus.style.display = "none";
@@ -93,9 +111,15 @@ function docker_reset(challenge_id) {
       "CSRF-Token": init.csrfNonce,
     },
     body: JSON.stringify({ challenge_id: challenge_id }),
-  }).catch((error) => {
-    console.error("Error:", error);
-  });
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+    });
 }
 
 function docker_status(challenge_id) {
@@ -112,7 +136,12 @@ function docker_status(challenge_id) {
     },
     body: JSON.stringify({ challenge_id: challenge_id }),
   })
-    .then((response) => response.json())
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    })
     .then((data) => {
       dockerSkeleton.style.display = "none";
       if (data.status == "running") {
@@ -126,14 +155,27 @@ function docker_status(challenge_id) {
     .catch((error) => {
       console.error("Error:", error);
     });
-}
 
-CTFd.plugin.run((_CTFd) => {
-  const checkInterval = setInterval(() => {
-    let dockerStart = document.getElementById("docker-start");
-    if (dockerStart) {
-      clearInterval(checkInterval);
-      docker_status(_CTFd.config.challenge_id);
-    }
-  }, 100);
-});
+  const dockerHostname = document.getElementById("docker-hostname");
+
+  fetch("/havel-docker/api/settings", {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      "CSRF-Token": init.csrfNonce,
+    },
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then((data) => {
+      dockerHostname.innerHTML = data.hostname;
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+    });
+}

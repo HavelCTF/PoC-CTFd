@@ -1,0 +1,31 @@
+{% extends 'admin/base.html' %}
+
+{% block content %}
+<div class="jumbotron">
+	<div class="container">
+		<h1>Docker Config</h1>
+	</div>
+</div>
+<div class="container">
+	<div class="row">
+		<div class="col-md-6 offset-md-3">
+			<form method="post" action="/havel-docker/api/settings" accept-charset="utf-8" autocomplete="off"
+				role="form" class="form-horizontal" enctype="multipart/form-data">
+				<div class="form-group">
+					<label for="hostname">
+						Hostname for Docker Host (this is what's displayed to the user in the connection string)
+					</label>
+    				<input class="form-control" type="text" name="hostname" id="hostname"
+    					placeholder="e.g. example.com or 127.0.0.1" value='{{ settings.hostname|default("") }}' />
+				</div>
+				<div class="col-md-13 text-center">
+					<button type="submit" tabindex="0" class="btn btn-md btn-success btn-outlined">
+						Submit
+					</button>
+				</div>
+				<input type="hidden" name="nonce" value="{{ Session.nonce }}">
+    		</form>
+		</div>
+	</div>
+</div>
+{% endblock content %}
