@@ -262,8 +262,6 @@ def load(app: Flask):
     @havel_docker_bp.route('/api/settings', methods=['POST'])
     @admins_only
     def set_settings():
-        print("Form: ", request.form)
-
         if request.form.get("hostname") is None:
             return {"error": "Invalid request"}, 400
 
@@ -272,7 +270,7 @@ def load(app: Flask):
         }
         compose_manager.set_settings(settings)
 
-        return redirect(url_for(".route_compose_settings"))
+        return redirect(url_for(".route_compose_dashboard"))
 
 
     @havel_docker_bp.route('/settings', methods=['GET'])
@@ -280,6 +278,17 @@ def load(app: Flask):
     def route_compose_settings():
         settings = compose_manager.get_settings()
         return render_template('compose_settings.html', settings=settings)
+
+
+    @havel_docker_bp.route('/dashboard', methods=['GET'])
+    @admins_only
+    def route_compose_dashboard():
+        challenges = HavelDockerChallengeModel.query.all()
+
+        for challenge in challenges:
+            challenge.is_running = compose_manager.is_running(f"compose-{challenge.id}.yml")
+
+        return render_template('compose_dashboard.html', challenges=challenges)
 
 
     app.register_blueprint(havel_docker_bp)

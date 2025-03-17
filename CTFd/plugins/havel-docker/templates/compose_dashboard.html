@@ -1,0 +1,103 @@
+{% extends 'admin/base.html' %}
+
+{% block content %}
+<div class="jumbotron">
+	<div class="container">
+		<h1>Docker Dashboard</h1>
+	</div>
+</div>
+<div class="container containers-container">
+   	<a class="btn btn-primary" href="{{ url_for('.route_compose_settings') }}"
+		style="float:right;margin-right:10px">Settings</a>
+
+	<table class="table">
+		<thead>
+			<tr>
+				<td><strong>ID</strong></td>
+				<td><strong>Challenge</strong></td>
+				<td><strong>Status</strong></td>
+				<td><strong>Action</strong></td>
+			</tr>
+		</thead>
+		<tbody>
+		    {% for challenge in challenges %}
+				<tr>
+                    <td>{{ challenge.id }}</td>
+                    <td>{{ challenge.name }}</td>
+                    <td>
+                        {% if challenge.is_running %}
+                            <span class="badge badge-success">Running</span>
+                        {% else %}
+                            <span class="badge badge-danger">Stopped</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if challenge.is_running %}
+                            <button
+                                type="submit" id="docker-stop" class="btn btn-danger"
+                                onclick="docker_stop('{{ challenge.id }}')"
+                            >
+                                Stop
+                            </button>
+                        {% else %}
+                            <button
+                                type="submit" id="docker-start" class="btn btn-success"
+                                onclick="docker_start('{{ challenge.id }}')"
+                            >
+                                Start
+                            </button>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+		</tbody>
+	</table>
+</div>
+{% endblock content %}
+
+
+{% block scripts %}
+<script>
+    function docker_start(challenge_id) {
+        fetch("/havel-docker/api/start", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+                "CSRF-Token": init.csrfNonce,
+            },
+            body: JSON.stringify({ challenge_id: challenge_id }),
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                window.location.reload();
+            })
+            .catch((error) => {
+                console.error("Error:", error);
+            });
+    }
+
+    function docker_stop(challenge_id) {
+        fetch("/havel-docker/api/stop", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+                "CSRF-Token": init.csrfNonce,
+            },
+            body: JSON.stringify({ challenge_id: challenge_id }),
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                window.location.reload();
+            })
+            .catch((error) => {
+                console.error("Error:", error);
+            });
+    }
+</script>
+{% endblock %}

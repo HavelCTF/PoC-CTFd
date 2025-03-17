@@ -49,7 +49,7 @@ class ComposeManager:
 
         Args:
             filename (str): The name of the docker compose file
-            compose_content (str): The contencompose_settingst of the compose.yml file as a string
+            compose_content (str): The content of the compose.yml file as a string
         """
         file_path: str = os.path.join(self.temp_dir, filename)
 
@@ -106,7 +106,7 @@ class ComposeManager:
             return False
 
         result_running_services = subprocess.run(
-            ["docker", "compose", "--file", file_path, "ps", "--services", "---filter", "status=running"],
+            ["docker", "compose", "--file", file_path, "ps", "--services", "--filter", "status=running"],
             capture_output=True, text=True)
         result_services = subprocess.run(
             ["docker", "compose", "--file", file_path, "ps", "--services"],

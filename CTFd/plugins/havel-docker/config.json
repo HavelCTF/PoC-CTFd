@@ -1,4 +1,4 @@
 {
   "name": "Havel Docker",
-  "route": "/havel-docker/settings"
+  "route": "/havel-docker/dashboard"
 }

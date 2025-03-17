@@ -22,6 +22,7 @@
 					<button type="submit" tabindex="0" class="btn btn-md btn-success btn-outlined">
 						Submit
 					</button>
+					<a class="btn btn-danger" href="{{ url_for('.route_compose_dashboard') }}">Cancel</a>
 				</div>
 				<input type="hidden" name="nonce" value="{{ Session.nonce }}">
     		</form>
