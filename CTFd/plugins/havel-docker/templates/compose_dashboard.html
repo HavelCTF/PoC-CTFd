@@ -6,15 +6,16 @@
 		<h1>Docker Dashboard</h1>
 	</div>
 </div>
-<div class="container containers-container">
+<div class="container">
    	<a class="btn btn-primary" href="{{ url_for('.route_compose_settings') }}"
-		style="float:right;margin-right:10px">Settings</a>
-
+		style="float: right; margin-right: 10px">Settings</a>
 	<table class="table">
 		<thead>
 			<tr>
 				<td><strong>ID</strong></td>
 				<td><strong>Challenge</strong></td>
+				<td><strong>Services</strong></td>
+				<td><strong>Open ports</strong></td>
 				<td><strong>Status</strong></td>
 				<td><strong>Action</strong></td>
 			</tr>
@@ -24,6 +25,8 @@
 				<tr>
                     <td>{{ challenge.id }}</td>
                     <td>{{ challenge.name }}</td>
+                    <td>{{ ", ".join(challenge.parse_config.services) }}</td>
+                    <td>{{ ", ".join(challenge.parse_config.ports) }}</td>
                     <td>
                         {% if challenge.is_running %}
                             <span class="badge badge-success">Running</span>
@@ -54,7 +57,6 @@
 	</table>
 </div>
 {% endblock content %}
-
 
 {% block scripts %}
 <script>

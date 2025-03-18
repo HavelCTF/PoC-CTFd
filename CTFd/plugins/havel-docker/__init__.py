@@ -251,6 +251,22 @@ def load(app: Flask):
         return {"status": "running" if is_running else "stopped"}, 200
 
 
+    @havel_docker_bp.route('/api/config/<challenge_id>', methods=['GET'])
+    @authed_only
+    @during_ctf_time_only
+    def get_compose_config(challenge_id):
+        challenge = HavelDockerChallengeModel.query.filter_by(id=challenge_id).first()
+        if challenge is None:
+            return {"error": "Invalid challenge_id"}, 400
+
+        try:
+            config = compose_manager.get_config(f"compose-{challenge.id}.yml")
+        except Exception as e:
+            return {"error": str(e)}, 500
+
+        return config, 200
+
+
     @havel_docker_bp.route('/api/settings', methods=['GET'])
     @authed_only
     @during_ctf_time_only
@@ -287,6 +303,7 @@ def load(app: Flask):
 
         for challenge in challenges:
             challenge.is_running = compose_manager.is_running(f"compose-{challenge.id}.yml")
+            challenge.parse_config = compose_manager.get_config(f"compose-{challenge.id}.yml", compose_content=challenge.config)
 
         return render_template('compose_dashboard.html', challenges=challenges)
 

@@ -1,6 +1,8 @@
 import subprocess
 import os
+import json
 import tempfile
+import shutil
 
 from CTFd.models import db
 
@@ -30,8 +32,11 @@ class ComposeManager:
         temp_dir = tempfile.mkdtemp()
         file_path: str = os.path.join(temp_dir, filename)
 
-        with open(file_path, 'w') as f:
-            f.write(compose_content)
+        file_exists = os.path.exists(file_path)
+
+        if not file_exists:
+            with open(file_path, 'w') as f:
+                f.write(compose_content)
 
         is_valid = True
         try:
@@ -39,7 +44,7 @@ class ComposeManager:
         except Exception:
             is_valid = False
 
-        os.rmdir(temp_dir)
+        shutil.rmtree(temp_dir)
         return is_valid
 
 
@@ -75,8 +80,6 @@ class ComposeManager:
         if result.returncode != 0:
             raise Exception("Error stopping Docker Compose.")
 
-        os.remove(file_path)
-
 
     def reset(self, filename: str, compose_content: str):
         """
@@ -109,10 +112,54 @@ class ComposeManager:
             ["docker", "compose", "--file", file_path, "ps", "--services", "--filter", "status=running"],
             capture_output=True, text=True)
         result_services = subprocess.run(
-            ["docker", "compose", "--file", file_path, "ps", "--services"],
+            ["docker", "compose", "--file", file_path, "config", "--services"],
             capture_output=True, text=True)
 
+        if result_running_services.returncode != 0 or result_services.returncode != 0:
+            return False
         return result_running_services.stdout == result_services.stdout
+
+
+    def get_config(self, filename: str, compose_content: str = "") -> object:
+        """
+        Gets the configuration of a docker compose file.
+
+        Args:
+            filename (str): The name of the docker compose file
+
+        Returns:
+            object: The configuration of the compose file
+        """
+        file_path: str = os.path.join(self.temp_dir, filename)
+
+        if not os.path.exists(file_path):
+            if (compose_content != ""):
+                with open(file_path, 'w') as f:
+                    f.write(compose_content)
+            else:
+                raise Exception("File does not exist")
+
+        result = subprocess.run(
+            ["docker", "compose", "--file", file_path, "config", "--format", "json"],
+            capture_output=True, text=True)
+
+        if result.returncode != 0:
+            raise Exception("Error getting compose config")
+
+        config = json.loads(result.stdout)
+
+        services = []
+        ports = []
+        for services_name, service_data in config["services"].items():
+            services.append(services_name)
+            if "ports" in service_data:
+                for port in service_data["ports"]:
+                    ports.append(port["published"])
+
+        return {
+            "services": list(config["services"].keys()),
+            "ports": ports
+        }
 
 
     def get_settings(self):
